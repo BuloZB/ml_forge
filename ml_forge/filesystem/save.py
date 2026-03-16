@@ -8,8 +8,8 @@ from __future__ import annotations
 import json
 import dearpygui.dearpygui as dpg
 
-import state
-from ui.console import log
+import ml_forge.state as state
+from ml_forge.ui.console import log
 
 FILE_VERSION = 1
 
@@ -27,7 +27,7 @@ def _serialise_tab(tid: int, t: dict) -> dict:
             pos = [int(raw[0]), int(raw[1])]
 
         params: dict[str, str] = {}
-        from engine.blocks import get_block_def
+        from ml_forge.engine.blocks import get_block_def
         block = get_block_def(label)
         if block:
             for param in block["params"]:
@@ -61,14 +61,14 @@ def save_project(path: str) -> None:
             json.dump(payload, f, indent=2)
         state.current_file = path
         log(f"Project saved -> {path}", "success")
-        from ui.statusbar import refresh_status
+        from ml_forge.ui.statusbar import refresh_status
         refresh_status()
     except Exception as e:
         log(f"Save failed: {e}", "error")
 
 
 def _clear_all_tabs() -> None:
-    from graph.nodes import raw_delete_node
+    from ml_forge.graph.nodes import raw_delete_node
     for tid in list(state.tabs.keys()):
         t = state.tabs[tid]
         for ntag in list(t["nodes"].keys()):
@@ -82,9 +82,9 @@ def _clear_all_tabs() -> None:
 
 
 def _restore_tab(tab_data: dict) -> None:
-    from graph.tabs  import new_tab
-    from graph.nodes import raw_spawn_node
-    from ui.resize   import resize_callback
+    from ml_forge.graph.tabs  import new_tab
+    from ml_forge.graph.nodes import raw_spawn_node
+    from ml_forge.ui.resize   import resize_callback
 
     name = tab_data.get("name", "Graph")
     role = tab_data.get("role")
@@ -103,7 +103,7 @@ def _restore_tab(tab_data: dict) -> None:
         raw_spawn_node(tid, label, nid=nid, pos=pos, params=params)
 
     # Remove hint node now that real nodes are being loaded
-    from graph.tabs import _remove_hint_node
+    from ml_forge.graph.tabs import _remove_hint_node
     _remove_hint_node(tid)
 
     for link_data in tab_data.get("links", []):
@@ -129,9 +129,9 @@ def _restore_tab(tab_data: dict) -> None:
 
 
 def load_project(path: str) -> None:
-    from ui.statusbar    import refresh_status
-    from graph.undo      import refresh_undo_menu
-    from graph.pipeline  import refresh_pipeline_bar
+    from ml_forge.ui.statusbar    import refresh_status
+    from ml_forge.graph.undo      import refresh_undo_menu
+    from ml_forge.graph.pipeline  import refresh_pipeline_bar
 
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -164,7 +164,7 @@ def load_project(path: str) -> None:
     refresh_undo_menu()
     refresh_pipeline_bar()
     try:
-        from engine.autofill import infer_from_dataset
+        from ml_forge.engine.autofill import infer_from_dataset
         infer_from_dataset()
     except Exception:
         pass

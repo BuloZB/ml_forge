@@ -9,16 +9,16 @@ This means undo/redo fully restores a node including everything typed into it.
 import copy
 import dearpygui.dearpygui as dpg
 
-import state
-from constants import MAX_UNDO
-from ui.console import log
+import ml_forge.state as state
+from ml_forge.constants import MAX_UNDO
+from ml_forge.ui.console import log
 
 
 # Snapshot helpers
 
 def _read_node_params(ntag: str, block_label: str) -> dict[str, str]:
     """Read current param field values for a node."""
-    from engine.blocks import get_block_def
+    from ml_forge.engine.blocks import get_block_def
     block = get_block_def(block_label)
     if not block:
         return {}
@@ -50,8 +50,8 @@ def _snapshot(tid: int) -> dict:
 
 def _apply_snapshot(tid: int, snap: dict) -> None:
     """Wipe the canvas for tab `tid` and rebuild from snap."""
-    from graph.nodes import raw_delete_node, raw_spawn_node
-    from ui.statusbar import refresh_status
+    from ml_forge.graph.nodes import raw_delete_node, raw_spawn_node
+    from ml_forge.ui.statusbar import refresh_status
 
     t      = state.tabs[tid]
     editor = t["editor_tag"]

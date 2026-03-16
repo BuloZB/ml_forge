@@ -11,7 +11,7 @@ Features:
 
 from __future__ import annotations
 import dearpygui.dearpygui as dpg
-import state
+import ml_forge.state as state
 
 
 # Known shapes per dataset
@@ -94,7 +94,7 @@ def _simulate_shapes(tab: dict) -> dict[str, tuple | None]:
     Returns dict[ntag -> shape_tuple | None]
     """
     try:
-        from engine.graph import topological_sort
+        from ml_forge.engine.graph import topological_sort
         ordered = topological_sort(tab)
     except Exception:
         return {}
@@ -250,7 +250,7 @@ def propagate_all(tab: dict) -> None:
     shapes = _simulate_shapes(tab)
 
     try:
-        from engine.graph import topological_sort
+        from ml_forge.engine.graph import topological_sort
         ordered = topological_sort(tab)
     except Exception:
         return

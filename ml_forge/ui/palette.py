@@ -5,9 +5,9 @@ Block palette panel: search filtering and button rebuild.
 
 import dearpygui.dearpygui as dpg
 
-import state
-from engine.blocks import SECTIONS
-from constants import SECTION_COLORS
+import ml_forge.state as state
+from ml_forge.engine.blocks import SECTIONS
+from ml_forge.constants import SECTION_COLORS
 
 
 def on_search(sender, app_data) -> None:
@@ -16,7 +16,7 @@ def on_search(sender, app_data) -> None:
 
 
 def rebuild_palette() -> None:
-    from graph.nodes import spawn_node
+    from ml_forge.graph.nodes import spawn_node
 
     query = state.search_state["query"]
     dpg.delete_item("palette_content", children_only=True)

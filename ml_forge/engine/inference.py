@@ -10,7 +10,7 @@ using train=False on the dataset node.
 from __future__ import annotations
 import pathlib
 import dearpygui.dearpygui as dpg
-from ui.console import log
+from ml_forge.ui.console import log
 
 
 # Texture
@@ -149,7 +149,7 @@ def _load_test_dataset():
     Returns (dataset, error_string).
     """
     from torchvision import datasets, transforms
-    from engine.graph import (topological_sort, get_tab_by_role,
+    from ml_forge.engine.graph import (topological_sort, get_tab_by_role,
                                _DATASET_BLOCKS, _AUG_BLOCKS, build_graph)
 
     tab = get_tab_by_role("data_prep")
@@ -332,7 +332,7 @@ def _run_on_current_sample() -> None:
     try:
         _, tensor, true_label = _state["last_sample"]
 
-        from engine.run import _build_torch_model, _resolve_device
+        from ml_forge.engine.run import _build_torch_model, _resolve_device
         device = _resolve_device("auto")
         model  = _build_torch_model(device)
         model.eval()

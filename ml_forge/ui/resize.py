@@ -5,7 +5,7 @@ Viewport resize callback.
 
 import dearpygui.dearpygui as dpg
 
-from constants import (
+from ml_forge.constants import (
     PALETTE_W, TRAIN_W,
     CONSOLE_H, TOOLBAR_H, STATUSBAR_H, MENUBAR_H,
 )

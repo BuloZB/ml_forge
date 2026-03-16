@@ -6,7 +6,7 @@ node/link counts or undo stack depths change.
 
 import pathlib
 import dearpygui.dearpygui as dpg
-import state
+import ml_forge.state as state
 
 
 def refresh_status() -> None:

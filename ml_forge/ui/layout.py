@@ -12,11 +12,11 @@ import math
 import time
 import dearpygui.dearpygui as dpg
 
-from constants      import PALETTE_W, TRAIN_W, CONSOLE_H, STATUSBAR_H
-from ui.console     import clear_console
-from ui.palette     import on_search
-from ui.summary     import refresh_model_summary
-from graph.tabs     import on_tab_change
+from ml_forge.constants      import PALETTE_W, TRAIN_W, CONSOLE_H, STATUSBAR_H
+from ml_forge.ui.console     import clear_console
+from ml_forge.ui.palette     import on_search
+from ml_forge.ui.summary     import refresh_model_summary
+from ml_forge.graph.tabs     import on_tab_change
 
 PIPELINE_BAR_H = 24
 
@@ -31,7 +31,7 @@ _demo_vacc  = [1 - math.exp(-0.18 * e) * 0.97   for e in _demo_e]
 
 
 def build_main_window() -> None:
-    from ui.toolbar import build_toolbar
+    from ml_forge.ui.toolbar import build_toolbar
 
     with dpg.window(tag="main_window", no_title_bar=True, no_move=True,
                     no_resize=True, no_scrollbar=True, no_collapse=True):

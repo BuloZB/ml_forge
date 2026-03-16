@@ -5,8 +5,8 @@ Model summary panel.
 
 import dearpygui.dearpygui as dpg
 
-from engine.blocks import get_block_def
-from graph.nodes   import input_field_tag
+from ml_forge.engine.blocks import get_block_def
+from ml_forge.graph.nodes   import input_field_tag
 
 
 def _safe_int(v) -> int:
@@ -25,8 +25,8 @@ PARAM_ESTIMATES: dict = {
 
 
 def refresh_model_summary() -> None:
-    import state
-    from graph.tabs import current_tab
+    import ml_forge.state as state
+    from ml_forge.graph.tabs import current_tab
 
     if not dpg.does_item_exist("summary_content"):
         return

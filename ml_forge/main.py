@@ -10,18 +10,18 @@ import time
 import dearpygui.dearpygui as dpg
 
 # Core IMports
-from ui.console       import log
-from graph.nodes      import delete_selected_nodes
-from ui.palette       import rebuild_palette
-from graph.pipeline   import refresh_pipeline_bar
-from graph.tabs       import new_tab, sync_active_tab
-from ui.training      import apply_train_btn_style, tick_training
-from graph.undo       import refresh_undo_menu
+from ml_forge.ui.console       import log
+from ml_forge.graph.nodes      import delete_selected_nodes
+from ml_forge.ui.palette       import rebuild_palette
+from ml_forge.graph.pipeline   import refresh_pipeline_bar
+from ml_forge.graph.tabs       import new_tab, sync_active_tab
+from ml_forge.ui.training      import apply_train_btn_style, tick_training
+from ml_forge.graph.undo       import refresh_undo_menu
 
 # UI builders
-from ui.menubar import build_menubar
-from ui.layout  import build_main_window
-from ui.resize  import resize_callback
+from ml_forge.ui.menubar import build_menubar
+from ml_forge.ui.layout  import build_main_window
+from ml_forge.ui.resize  import resize_callback
 
 
 #  Splash helpers
@@ -96,8 +96,8 @@ def main() -> None:
     dpg.set_primary_window("main_window", True)
     resize_callback()
 
-    import state
-    from graph.tabs import tab_tag
+    import ml_forge.state as state
+    from ml_forge.graph.tabs import tab_tag
 
     for tab_name, tab_role in [
         ("Data Prep", "data_prep"),
@@ -125,7 +125,7 @@ def main() -> None:
     apply_train_btn_style()
     refresh_undo_menu()
     refresh_pipeline_bar()
-    from ui.training import update_cuda_stats
+    from ml_forge.ui.training import update_cuda_stats
     update_cuda_stats()
 
     _splash_step("Ready.", 1.0)
@@ -150,13 +150,13 @@ def main() -> None:
 
         if dpg.is_key_down(dpg.mvKey_LControl):
             if dpg.is_key_pressed(dpg.mvKey_S):
-                from filesystem.save import save_current
+                from ml_forge.filesystem.save import save_current
                 save_current()
             if dpg.is_key_pressed(dpg.mvKey_Z):
-                from graph.undo import undo
+                from ml_forge.graph.undo import undo
                 undo()
             if dpg.is_key_pressed(dpg.mvKey_Y):
-                from graph.undo import redo
+                from ml_forge.graph.undo import redo
                 redo()
 
         sync_active_tab()
@@ -169,7 +169,7 @@ def main() -> None:
             try:
                 t = state.tabs.get(state.active_tab_id)
                 if t and t.get("role") == "model":
-                    from engine.autofill import on_param_changed
+                    from ml_forge.engine.autofill import on_param_changed
                     on_param_changed(t)
             except Exception:
                 pass

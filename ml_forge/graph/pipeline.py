@@ -4,8 +4,8 @@ Pipeline stage definitions and completion detection.
 """
 
 import dearpygui.dearpygui as dpg
-import state
-from engine.blocks import get_block_def
+import ml_forge.state as state
+from ml_forge.engine.blocks import get_block_def
 
 ROLES = {
     "data_prep": {"label": "Data Prep", "color": (160, 100, 255), "dim": (80, 50, 130),  "description": "Datasets, loaders, augmentation"},
@@ -79,7 +79,7 @@ def refresh_pipeline_bar() -> None:
     errors = warnings = 0
     if not any_empty:
         try:
-            from engine.graph import validate_pipeline
+            from ml_forge.engine.graph import validate_pipeline
             result   = validate_pipeline()
             errors   = len(result.errors)
             warnings = len(result.warnings)

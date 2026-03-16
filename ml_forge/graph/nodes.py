@@ -8,9 +8,9 @@ Public variants are called from the UI and always push an undo snapshot first.
 
 import dearpygui.dearpygui as dpg
 
-import state
-from engine.blocks import get_block_def
-from constants import NODE_GRID_COLS, NODE_GRID_X_STEP, NODE_GRID_Y_STEP, NODE_GRID_ORIGIN
+import ml_forge.state as state
+from ml_forge.engine.blocks import get_block_def
+from ml_forge.constants import NODE_GRID_COLS, NODE_GRID_X_STEP, NODE_GRID_Y_STEP, NODE_GRID_ORIGIN
 
 
 def node_tag(tid: int, nid: int) -> str:
@@ -149,9 +149,9 @@ def raw_delete_node(tid: int, ntag: str) -> None:
 
 def spawn_node(block_label: str) -> None:
     """Spawn a node into the active tab, pushing an undo snapshot first."""
-    from graph.undo   import push_undo
-    from graph.tabs   import current_tab, _remove_hint_node
-    from ui.statusbar import refresh_status
+    from ml_forge.graph.undo   import push_undo
+    from ml_forge.graph.tabs   import current_tab, _remove_hint_node
+    from ml_forge.ui.statusbar import refresh_status
 
     t = current_tab()
     if t is None:
@@ -164,7 +164,7 @@ def spawn_node(block_label: str) -> None:
 
     # Auto-fill shapes and propagate dimensions
     try:
-        from engine.autofill import on_node_spawned
+        from ml_forge.engine.autofill import on_node_spawned
         on_node_spawned(t)
     except Exception:
         pass
@@ -172,8 +172,8 @@ def spawn_node(block_label: str) -> None:
 
 def delete_node(ntag: str) -> None:
     """Delete a single node from the active tab with undo."""
-    from graph.undo import push_undo
-    from ui.statusbar import refresh_status
+    from ml_forge.graph.undo import push_undo
+    from ml_forge.ui.statusbar import refresh_status
 
     push_undo(state.active_tab_id)
     raw_delete_node(state.active_tab_id, ntag)
@@ -183,9 +183,9 @@ def delete_node(ntag: str) -> None:
 
 def delete_selected_nodes() -> None:
     """Delete all currently selected nodes in the active tab."""
-    from graph.undo import push_undo
-    from graph.tabs import current_tab
-    from ui.statusbar import refresh_status
+    from ml_forge.graph.undo import push_undo
+    from ml_forge.graph.tabs import current_tab
+    from ml_forge.ui.statusbar import refresh_status
 
     t = current_tab()
     if t is None:
@@ -203,9 +203,9 @@ def delete_selected_nodes() -> None:
 
 def clear_canvas() -> None:
     """Delete every node on the active tab's canvas."""
-    from graph.undo import push_undo
-    from graph.tabs import current_tab
-    from ui.statusbar import refresh_status
+    from ml_forge.graph.undo import push_undo
+    from ml_forge.graph.tabs import current_tab
+    from ml_forge.ui.statusbar import refresh_status
 
     t = current_tab()
     if t is None:
@@ -222,7 +222,7 @@ def _maybe_refresh_summary() -> None:
     t = state.tabs.get(state.active_tab_id)
     if t and t.get("role") == "model":
         try:
-            from ui.summary import refresh_model_summary
+            from ml_forge.ui.summary import refresh_model_summary
             refresh_model_summary()
         except Exception:
             pass

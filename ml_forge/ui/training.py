@@ -7,9 +7,9 @@ node highlighting, and CUDA/VRAM menubar stats.
 import time
 import dearpygui.dearpygui as dpg
 
-import state
-from constants import TRAIN_BTN_STYLES
-from ui.console import log
+import ml_forge.state as state
+from ml_forge.constants import TRAIN_BTN_STYLES
+from ml_forge.ui.console import log
 
 
 _cuda_checked = False
@@ -59,7 +59,7 @@ _node_issue_themes: list[int] = []
 
 
 def highlight_issues(issues: list) -> None:
-    from engine.blocks import get_block_def
+    from ml_forge.engine.blocks import get_block_def
     clear_highlights()
     for issue in issues:
         if not issue.ntag or not dpg.does_item_exist(issue.ntag):
@@ -147,14 +147,14 @@ def _read_train_config() -> dict:
 
 
 def on_run() -> None:
-    from engine.graph import validate_pipeline
-    from engine.run   import start_training
+    from ml_forge.engine.graph import validate_pipeline
+    from ml_forge.engine.run   import start_training
 
     ts = state.train_state
     s  = ts["status"]
 
     if s == "paused":
-        from engine.run import pause_training
+        from ml_forge.engine.run import pause_training
         pause_training()
         ts["status"] = "running"
         log("Training resumed.", "info")
@@ -163,6 +163,11 @@ def on_run() -> None:
         return
 
     if s != "idle":
+        return
+
+    # Require the project to be saved before training
+    if not getattr(state, "current_file", None):
+        log("Save your project first before training (Ctrl+S or File > Save As).", "error")
         return
 
     try:
@@ -214,7 +219,7 @@ def on_run() -> None:
     log(f"Starting training - {total} epochs.", "success")
 
     try:
-        from ui.summary import refresh_model_summary
+        from ml_forge.ui.summary import refresh_model_summary
         refresh_model_summary()
     except Exception:
         pass
@@ -225,7 +230,7 @@ def on_run() -> None:
 
 
 def on_pause() -> None:
-    from engine.run import pause_training
+    from ml_forge.engine.run import pause_training
     ts = state.train_state
     if ts["status"] == "running":
         ts["status"] = "paused"
@@ -240,7 +245,7 @@ def on_pause() -> None:
 
 
 def on_stop() -> None:
-    from engine.run import stop_training
+    from ml_forge.engine.run import stop_training
     ts = state.train_state
     if ts["status"] in ("running", "paused"):
         stop_training()
@@ -273,7 +278,7 @@ def tick_training(dt: float) -> None:
     if ts["status"] not in ("running", "paused"):
         return
 
-    from engine.run import drain_result_queue
+    from ml_forge.engine.run import drain_result_queue
     drain_result_queue()
 
 
@@ -281,7 +286,7 @@ def _update_split_controls() -> None:
     if not dpg.does_item_exist("cfg_val_split"):
         return
     try:
-        from engine.graph import get_tab_by_role, build_graph
+        from ml_forge.engine.graph import get_tab_by_role, build_graph
         tab = get_tab_by_role("data_prep")
         has_val_loader = False
         if tab:

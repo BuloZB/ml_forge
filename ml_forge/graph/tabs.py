@@ -6,8 +6,8 @@ active-tab sync that runs every frame in the render loop.
 
 import dearpygui.dearpygui as dpg
 
-import state
-from ui.console import log
+import ml_forge.state as state
+from ml_forge.ui.console import log
 
 
 # Tag helpers
@@ -34,7 +34,7 @@ def new_tab(name: str | None = None, role: str | None = None) -> int:
     role: "data_prep" | "model" | "training" | None
     Returns the new tab id.
     """
-    from graph.links import link_callback, delink_callback
+    from ml_forge.graph.links import link_callback, delink_callback
 
     state.tab_counter += 1
     tid  = state.tab_counter
@@ -174,8 +174,8 @@ def _remove_hint_node(tid: int) -> None:
 
 def close_tab(tid: int | None) -> None:
     """Close tab `tid`, cleaning up all its nodes and DearPyGui items."""
-    from graph.nodes import raw_delete_node
-    from ui.statusbar import refresh_status
+    from ml_forge.graph.nodes import raw_delete_node
+    from ml_forge.ui.statusbar import refresh_status
 
     if tid is None or tid not in state.tabs:
         return
@@ -202,8 +202,8 @@ def assign_role(tid: int, role: str | None) -> None:
     Assign or clear the pipeline role for tab `tid`.
     Updates the tab header colour and refreshes the pipeline bar.
     """
-    from graph.pipeline import ROLES, refresh_pipeline_bar
-    import graph.pipeline as _pipeline
+    from ml_forge.graph.pipeline import ROLES, refresh_pipeline_bar
+    import ml_forge.graph.pipeline as _pipeline
 
     if tid not in state.tabs:
         return
@@ -231,7 +231,7 @@ def assign_role(tid: int, role: str | None) -> None:
 
 def open_assign_role_dialog() -> None:
     """Show a popup to assign a pipeline role to the active tab."""
-    from graph.pipeline import ROLES, ROLE_ORDER
+    from ml_forge.graph.pipeline import ROLES, ROLE_ORDER
 
     tid = state.active_tab_id
     if tid is None or tid not in state.tabs:
@@ -303,7 +303,7 @@ def sync_active_tab() -> None:
     selected tab item - so we resolve each tab's tag to its item ID
     via dpg.get_alias_id() before comparing.
     """
-    from ui.statusbar import refresh_status
+    from ml_forge.ui.statusbar import refresh_status
 
     if not dpg.does_item_exist("canvas_tabbar"):
         return
@@ -326,7 +326,7 @@ def on_tab_change(sender, app_data) -> None:
     DearPyGui callback - fires when user clicks a tab.
     app_data is the integer item ID of the newly selected tab.
     """
-    from ui.statusbar import refresh_status
+    from ml_forge.ui.statusbar import refresh_status
 
     for tid in state.tabs:
         ttag = tab_tag(tid)

@@ -4,11 +4,11 @@ DearPyGui node-editor link and delink callbacks.
 """
 
 import dearpygui.dearpygui as dpg
-import state
+import ml_forge.state as state
 
 
 def link_callback(sender, app_data) -> None:
-    from graph.undo import push_undo
+    from ml_forge.graph.undo import push_undo
 
     tid = state.active_tab_id
     t   = state.tabs.get(tid)
@@ -34,14 +34,14 @@ def link_callback(sender, app_data) -> None:
         if len(sp) >= 3 and len(dp) >= 3:
             src_ntag = f"node_{sp[1]}_{sp[2]}"
             dst_ntag = f"node_{dp[1]}_{dp[2]}"
-            from engine.autofill import on_link_made
+            from ml_forge.engine.autofill import on_link_made
             on_link_made(t, src_ntag, dst_ntag)
     except Exception:
         pass
 
 
 def delink_callback(sender, app_data) -> None:
-    from graph.undo import push_undo
+    from ml_forge.graph.undo import push_undo
 
     tid = state.active_tab_id
     t   = state.tabs.get(tid)

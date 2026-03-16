@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import dearpygui.dearpygui as dpg
 
-import state
-from ui.console import log
+import ml_forge.state as state
+from ml_forge.ui.console import log
 
 _MODEL_POS      = (40,  60)
 _DATALOADER_POS = (40, 260)
@@ -42,7 +42,7 @@ def ensure_pipeline_inputs() -> None:
     if tid is None:
         return
 
-    from graph.nodes import raw_spawn_node
+    from ml_forge.graph.nodes import raw_spawn_node
 
     model_tag  = _ntag(tid, _MODEL_NID)
     loader_tag = _ntag(tid, _DATALOADER_NID)
@@ -69,18 +69,8 @@ def _lock_node(ntag: str) -> None:
 
 
 def update_block_labels() -> None:
-    """
-    Intentionally a no-op.
-    Previously this renamed the ModelBlock / DataLoaderBlock nodes with live
-    summary strings (e.g. "Model (3 layers, 450K params)"). That caused a
-    critical bug: build_graph() looks up each node by its label to find the
-    block definition. A renamed label returns None from get_block_def(), so
-    ensure_pipeline_inputs() thinks the nodes are missing and spawns duplicates
-    on every RUN. Labels must always stay as "ModelBlock" / "DataLoaderBlock".
-    """
     pass
 
 
 def reset_block_labels() -> None:
-    """No-op — labels are never changed so there is nothing to reset."""
     pass

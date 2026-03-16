@@ -12,7 +12,7 @@ Public:
 
 from __future__ import annotations
 import textwrap
-from engine.graph import build_graph, topological_sort, get_tab_by_role, GraphNode
+from ml_forge.engine.graph import build_graph, topological_sort, get_tab_by_role, GraphNode
 
 
 #  PyTorch module name mapping
@@ -235,7 +235,7 @@ def _gen_data(tab: dict) -> tuple[str, list[str]]:
     The preamble contains the transform definitions.
     The main block contains the dataset + dataloader instantiation.
     """
-    from engine.graph import build_graph, topological_sort, _DATASET_BLOCKS, _AUG_BLOCKS
+    from ml_forge.engine.graph import build_graph, topological_sort, _DATASET_BLOCKS, _AUG_BLOCKS
 
     try:
         ordered = topological_sort(tab)
@@ -554,7 +554,7 @@ def export_pytorch() -> None:
     Wired to File > Export > Python > PyTorch.
     """
     import dearpygui.dearpygui as dpg
-    from ui.console import log
+    from ml_forge.ui.console import log
 
     def _on_save(sender, app_data):
         path = app_data.get("file_path_name", "")

@@ -5,13 +5,13 @@ The thin toolbar strip that sits above the canvas panel.
 
 import dearpygui.dearpygui as dpg
 
-import state
-from constants import TOOLBAR_H
+import ml_forge.state as state
+from ml_forge.constants import TOOLBAR_H
 
 
 def build_toolbar() -> None:
-    from graph.nodes import clear_canvas
-    from graph.tabs  import new_tab, close_tab
+    from ml_forge.graph.nodes import clear_canvas
+    from ml_forge.graph.tabs  import new_tab, close_tab
 
     with dpg.child_window(tag="toolbar", height=TOOLBAR_H,
                            border=False, no_scrollbar=True):

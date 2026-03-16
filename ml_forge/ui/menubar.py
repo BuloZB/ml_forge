@@ -5,16 +5,16 @@ All callbacks are imported from their respective logic modules.
 """
 
 import dearpygui.dearpygui as dpg
-import state
+import ml_forge.state as state
 
 
 def build_menubar() -> None:
-    from graph.nodes       import delete_selected_nodes, clear_canvas
-    from graph.tabs        import new_tab, close_tab, open_assign_role_dialog
-    from graph.undo        import undo, redo
-    from ui.training       import on_run, on_pause, on_stop
-    from engine.generator  import export_pytorch
-    from filesystem.save   import save_current, open_save_dialog, open_load_dialog
+    from ml_forge.graph.nodes       import delete_selected_nodes, clear_canvas
+    from ml_forge.graph.tabs        import new_tab, close_tab, open_assign_role_dialog
+    from ml_forge.graph.undo        import undo, redo
+    from ml_forge.ui.training       import on_run, on_pause, on_stop
+    from ml_forge.engine.generator  import export_pytorch
+    from ml_forge.filesystem.save   import save_current, open_save_dialog, open_load_dialog
 
     with dpg.viewport_menu_bar():
         dpg.add_text("ML Forge", color=(100, 200, 255))
@@ -63,7 +63,7 @@ def build_menubar() -> None:
         # Run
         with dpg.menu(label="Run"):
             dpg.add_menu_item(label="Inference...",
-                              callback=lambda: __import__("engine.inference", fromlist=["open_inference_window"]).open_inference_window())
+                              callback=lambda: __import__("ml_forge.engine.inference", fromlist=["open_inference_window"]).open_inference_window())
 
         # Help
         with dpg.menu(label="Help"):
@@ -82,7 +82,7 @@ def build_menubar() -> None:
         
         dpg.add_separator()
         dpg.add_button(label="METRICS", tag="btn_metrics", small=True,
-                       callback=lambda: __import__("engine.metrics", fromlist=["open_metrics_window"]).open_metrics_window())
+                       callback=lambda: __import__("ml_forge.engine.metrics", fromlist=["open_metrics_window"]).open_metrics_window())
 
         dpg.add_separator()
         dpg.add_text("VRAM:", color=(150, 150, 150))
@@ -95,9 +95,9 @@ def build_menubar() -> None:
 def _load_template(filename: str) -> None:
     """Load a bundled template without overwriting state.current_file."""
     import pathlib
-    from filesystem.save import load_project
-    from ui.console import log
-    import state
+    from ml_forge.filesystem.save import load_project
+    from ml_forge.ui.console import log
+    import ml_forge.state as state
 
     templates_dir = pathlib.Path(__file__).parent.parent / "templates"
     path = templates_dir / filename
@@ -109,7 +109,7 @@ def _load_template(filename: str) -> None:
     load_project(str(path))
     state.current_file = None
     log("Template loaded. Use File > Save As to save your own copy.", "info")
-    from ui.statusbar import refresh_status
+    from ml_forge.ui.statusbar import refresh_status
     refresh_status()
 
 
