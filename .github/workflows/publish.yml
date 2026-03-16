@@ -13,10 +13,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.11"
 
       - name: Install build tools
-        run: pip install build twine
+        run: pip install --upgrade setuptools build twine
 
       - name: Build package
         run: python -m build
