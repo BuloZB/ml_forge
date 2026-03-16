@@ -12,6 +12,22 @@ A visual PyTorch pipeline editor. Build, train and run image classification mode
 - **Export** - export projects into clean PyTorch
 
 ---
+## Installing
+
+To install MLForge, enter the following in your command prompt
+
+```
+pip install zaina-ml-forge
+```
+
+Then
+
+```
+ml-forge
+```
+
+**IMPORTANT**: PyTorch must be preinstalled for training, it is not installed as a dependency. 
+
 
 ## Requirements
 
@@ -20,7 +36,7 @@ A visual PyTorch pipeline editor. Build, train and run image classification mode
 - torchvision
 
 ```
-pip install torch torchvision dearpygui
+pip install torch torchvision
 ```
 
 GPU training is automatic if CUDA is available. CPU and Apple MPS are also supported.
@@ -119,18 +135,17 @@ Projects are saved as `.mlf` files (JSON). Use **File -> Save / Save As** or `Ct
 
 ## Exporting code
 
-**File → Export → Python → PyTorch** generates a standalone `train.py` that reproduces your pipeline. No ML Forge required to run it.
+**File -> Export -> Python -> PyTorch** generates a standalone `train.py` that reproduces your pipeline. No ML Forge required to run it.
 
 ---
 
-## Known limitations
+## Future Plans
 
-- Sequential models only - skip connections and branching architectures are not supported in v1.0
-- No learning rate schedulers in v1.0
-- Tab sizing cosmetic bug - first tab (data) appears far larger than other tabs
+- Orient to a more beginner-friendly approach
+- Add custom block functionality
 
 ---
 
 ## License
 
-APACHE
+MIT
