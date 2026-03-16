@@ -30,6 +30,9 @@ training = [
     "torchvision>=0.15.0",
 ]
 
+[tool.setuptools.package-data]
+"ml_forge" = ["templates/*.mlf"]
+
 [project.scripts]
 ml-forge = "ml_forge.main:main"
 
