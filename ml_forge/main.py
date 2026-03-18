@@ -144,7 +144,7 @@ def main() -> None:
         now       = time.time()
         dt        = now - prev_time
         prev_time = now
-
+        
         if dpg.is_key_pressed(dpg.mvKey_Delete):
             delete_selected_nodes()
 
