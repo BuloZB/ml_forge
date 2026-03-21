@@ -53,7 +53,7 @@ python -m ml_forge
 
 ### Adding a new block
 
-Blocks are defined in `ml_forge/blocks.py`. Each block is a dict with:
+Blocks are defined in `ml_forge/engine/blocks.py`. Each block is a dict with:
 
 ```
 {
