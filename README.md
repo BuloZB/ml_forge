@@ -1,7 +1,7 @@
 # ML Forge
 
 A visual PyTorch pipeline editor. Build, train and run image classification models without writing code.
-![ML Forge screenshot](assets/showcase.gif)
+![ML Forge screenshot](ml_forge/assets/showcase.gif)
 ---
 
 ## What it does
@@ -14,31 +14,44 @@ A visual PyTorch pipeline editor. Build, train and run image classification mode
 ---
 
 ## Requirements
+**IMPORTANT**: PyTorch must be preinstalled for training, it is not installed as a dependency. 
 
 - Python 3.10 or newer
 - PyTorch 2.0 or newer
 - torchvision
 
 ```
-pip install torch torchvision dearpygui
+pip install torch torchvision
 ```
 
 GPU training is automatic if CUDA is available. CPU and Apple MPS are also supported.
 
 ---
 
-## Quick start
+## Quick Start
+
+To install MLForge, enter the following in your command prompt
 
 ```
-git clone https://github.com/yourname/ml-forge
-python main.py
+pip install zaina-ml-forge
 ```
 
-Use the templates (file -> templates) to access premade projects:
+Then
 
-**File -> Templates -> MNIST Classifier**
+```
+ml-forge
+```
 
-Then press **RUN** in the toolbar.
+
+---
+
+## Cloning
+
+```
+git clone https://github.com/zaina-ml/ml-forge
+python -m ml_forge
+```
+
 
 ---
 
@@ -119,18 +132,17 @@ Projects are saved as `.mlf` files (JSON). Use **File -> Save / Save As** or `Ct
 
 ## Exporting code
 
-**File → Export → Python → PyTorch** generates a standalone `train.py` that reproduces your pipeline. No ML Forge required to run it.
+**File -> Export -> Python -> PyTorch** generates a standalone `train.py` that reproduces your pipeline. No ML Forge required to run it.
 
 ---
 
-## Known limitations
+## Future Plans
 
-- Sequential models only - skip connections and branching architectures are not supported in v1.0
-- No learning rate schedulers in v1.0
-- Tab sizing cosmetic bug - first tab (data) appears far larger than other tabs
+- Orient to a more beginner-friendly approach
+- Add custom block functionality
 
 ---
 
 ## License
 
-APACHE
+MIT
