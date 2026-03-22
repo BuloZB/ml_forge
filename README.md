@@ -4,6 +4,14 @@ A visual PyTorch pipeline editor. Build, train and run image classification mode
 ![ML Forge screenshot](ml_forge/assets/showcase.gif)
 ---
 
+## MLForge v1.0.2
+
+Additions:
+- All nodes now spawn with sensible default values
+- Added `Ctrl-Backspace` as a backup for deleting nodes
+- Core bug fixes
+
+
 ## What it does
 
 - **Visual pipeline** - drag nodes onto a canvas, connect them with wires, and ML Forge generates and runs the training code for you
