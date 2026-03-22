@@ -3,7 +3,7 @@ run.py
 Real PyTorch training execution in a background thread.
 
 The thread communicates with the UI via a queue:
-  _result_queue  — epoch results posted by the thread, drained each frame
+  _result_queue  - epoch results posted by the thread, drained each frame
 
 PyTorch is required. The caller (training.py) is responsible for checking
 that torch is installed before calling start_real_training().
@@ -98,13 +98,6 @@ def _build_torch_model(device):
 def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
     """
     Walk the Data Prep graph and build train and val DataLoaders.
-
-    Supports two modes:
-      A) Dual chain — user places two Dataset nodes (train=True, train=False)
-         each with their own transform chain wired into DataLoader (train)
-         and DataLoader (val). The graph is walked separately for each loader.
-      B) Single chain — one Dataset node wired into DataLoader (train) only.
-         Falls back to val_split from Training Config to split the dataset.
     """
     import torch
     from torch.utils.data import DataLoader, random_split
@@ -219,7 +212,7 @@ def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
         """Return ordered nodes that are ancestors of loader_node."""
         loader_ntag = loader_node.ntag
         ancestors   = set()
-        # Walk backwards via links — any node whose output connects to loader
+        # Walk backwards via links - any node whose output connects to loader
         # or to another ancestor is an ancestor
         changed = True
         targets = {loader_ntag}

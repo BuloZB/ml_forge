@@ -192,7 +192,7 @@ def _gen_model(tab: dict) -> str:
         args = _fill(template, node)
         init_lines.append(f"self.{attr} = {module}({args})")
 
-        # LSTM returns tuple — unpack hidden states
+        # LSTM returns tuple - unpack hidden states
         if label == "LSTM":
             forward_lines.append(f"x, _ = self.{attr}(x)")
         else:

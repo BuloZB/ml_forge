@@ -137,7 +137,7 @@ def build_graph(tab: dict) -> dict[str, GraphNode]:
         connected_out[ntag] = set()
 
     for a1, a2 in tab["links"].values():
-        # DearPyGui may store endpoints as integer item IDs — resolve to aliases
+        # DearPyGui may store endpoints as integer item IDs - resolve to aliases
         if isinstance(a1, int):
             a1 = dpg.get_item_alias(a1) or ""
         if isinstance(a2, int):
@@ -226,13 +226,13 @@ def topological_sort(tab: dict) -> list[GraphNode]:
                 queue.append(succ)
 
     if len(sorted_nodes) != len(graph):
-        raise CycleError("Graph contains a cycle — cannot sort.")
+        raise CycleError("Graph contains a cycle - cannot sort.")
 
     return sorted_nodes
 
 #  Validators per tab role
 
-# Nodes that count as "required params" — any param that is not optional
+# Nodes that count as "required params" - any param that is not optional
 # For now: any param field that exists should be filled (empty = warning)
 _OPTIONAL_PARAMS: set[str] = {"padding", "bias", "eps", "momentum",
                                "weight_decay", "betas", "ignore_index", "weight"}
@@ -252,7 +252,7 @@ def _validate_params(graph: dict[str, GraphNode], result: ValidationResult) -> N
             )
         elif empty:
             result.add_warning(
-                f"{node.block_label}: params not filled — {', '.join(empty)}.",
+                f"{node.block_label}: params not filled - {', '.join(empty)}.",
                 node.ntag,
             )
 
@@ -299,7 +299,7 @@ def _validate_data_prep(tab: dict, result: ValidationResult) -> None:
     for loader in all_loaders:
         if "img" not in loader.connected_inputs:
             result.add_warning(
-                f"{loader.block_label}: input is not connected — wire the chain into it.",
+                f"{loader.block_label}: input is not connected - wire the chain into it.",
                 loader.ntag,
             )
 
@@ -334,12 +334,12 @@ def _validate_model(tab: dict, result: ValidationResult) -> None:
     if len(inputs) == 0:
         result.add_error("Model tab needs an Input node.")
     elif len(inputs) > 1:
-        result.add_error(f"Model tab has {len(inputs)} Input nodes — only one allowed.")
+        result.add_error(f"Model tab has {len(inputs)} Input nodes - only one allowed.")
 
     if len(outputs) == 0:
         result.add_error("Model tab needs an Output node.")
     elif len(outputs) > 1:
-        result.add_error(f"Model tab has {len(outputs)} Output nodes — only one allowed.")
+        result.add_error(f"Model tab has {len(outputs)} Output nodes - only one allowed.")
 
     # Check for orphaned nodes (no connections at all)
     for node in graph.values():
@@ -358,7 +358,7 @@ def _validate_model(tab: dict, result: ValidationResult) -> None:
         missing = [p for p in node.inputs if p not in node.connected_inputs]
         if missing:
             result.add_warning(
-                f"{node.block_label}: input pin(s) not connected — {', '.join(missing)}.",
+                f"{node.block_label}: input pin(s) not connected - {', '.join(missing)}.",
                 node.ntag,
             )
 
@@ -465,7 +465,7 @@ def _validate_training(tab: dict, result: ValidationResult) -> None:
 def validate_pipeline() -> ValidationResult:
     """
     Validate all three pipeline tabs.
-    Returns a ValidationResult — check .ok and .issues.
+    Returns a ValidationResult
     """
     result = ValidationResult()
 

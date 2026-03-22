@@ -11,6 +11,9 @@ A visual PyTorch pipeline editor. Build, train and run image classification mode
 - **Live training** - watch loss curves update in real time, save checkpoints, run inference on your trained model
 - **Export** - export projects into clean PyTorch
 
+## Tutorial
+Watch the MLForge tutorial video here: [MLForge Tutorial](https://www.youtube.com/watch?v=aSBxPpcXqzc)
+
 ---
 
 ## Requirements
@@ -92,11 +95,11 @@ Configure epochs, device, checkpointing and early stopping in the right panel, t
 
 | Key | Action |
 |-----|--------|
-| `Del` | Delete selected nodes |
+| `Del` / `Ctrl-Backspace` | Delete selected nodes |
 | `Ctrl+S` | Save project |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
-| Middle-drag | Pan the canvas |
+| `Middle-drag` | Pan the canvas |
 
 ---
 
