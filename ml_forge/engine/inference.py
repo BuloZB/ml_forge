@@ -3,8 +3,6 @@ inference.py
 Inference mode - sample a random image from the test/val dataset,
 run a forward pass through the trained model, show top-k predictions.
 
-No file uploading — samples come directly from the Data Prep graph
-using train=False on the dataset node.
 """
 
 from __future__ import annotations
@@ -305,7 +303,6 @@ def _new_sample() -> None:
 def _run_on_current_sample() -> None:
     """Run inference on the currently loaded sample without fetching a new one."""
     if _state["last_sample"] is None:
-        # No sample yet — load one first automatically
         _new_sample()
         if _state["last_sample"] is None:
             return
@@ -354,7 +351,7 @@ def _run_on_current_sample() -> None:
         top1    = topk_idxs[0].item()
         top1_c  = topk_vals[0].item()
         verdict = "CORRECT" if top1 == correct else "WRONG"
-        _set_status(f"Top-1: class {top1} ({top1_c:.1%}) — {verdict}")
+        _set_status(f"Top-1: class {top1} ({top1_c:.1%}) - {verdict}")
         log(f"Inference: pred={top1} conf={top1_c:.3f} true={correct} [{verdict}]", "success")
 
     except Exception as e:
