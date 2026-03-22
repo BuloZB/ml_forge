@@ -28,25 +28,20 @@ def attr_param_tag(tid: int, nid: int, param: str) -> str:
 def input_field_tag(tid: int, nid: int, param: str) -> str:
     return f"node_{tid}_{nid}_input_{param}"
 
+
+# raw ops
+
 def raw_spawn_node(tid: int, block_label: str, nid: int | None = None,
                    pos: tuple | None = None,
                    params: dict | None = None) -> str | None:
     """
     Spawn a node directly into tab `tid` without touching the undo stack.
     Used by snapshot restore, persistence load, and the public spawn_node() wrapper.
-
-    Args:
-        tid:         target tab id
-        block_label: block type name
-        nid:         force a specific node id (used by undo/load)
-        pos:         (x, y) canvas position; auto-grid if None
-        params:      dict of param_name -> value to pre-fill fields
-
-    Returns the node_tag on success, None if block_label is unknown.
     """
     t = state.tabs[tid]
 
     # Reserved NIDs (9000+) are used by system nodes like ModelBlock/DataLoaderBlock.
+    # They must not corrupt the user node_counter used for grid positioning.
     RESERVED_NID_THRESHOLD = 9000
 
     if nid is None:
@@ -97,11 +92,14 @@ def raw_spawn_node(tid: int, block_label: str, nid: int | None = None,
                 dpg.add_text(pin, color=(180, 180, 180))
 
         for param in block["params"]:
-            default = (params or {}).get(param, "")
+            # Priority: explicitly passed params > block defaults > empty
+            explicit = (params or {}).get(param)
+            default  = block.get("defaults", {}).get(param, "")
+            value    = explicit if explicit is not None else default
             with dpg.node_attribute(label=param,
                                     attribute_type=dpg.mvNode_Attr_Static,
                                     tag=attr_param_tag(tid, nid, param)):
-                dpg.add_input_text(label=param, default_value=default,
+                dpg.add_input_text(label=param, default_value=value,
                                    width=110, hint=param,
                                    tag=input_field_tag(tid, nid, param))
 
@@ -144,8 +142,6 @@ def raw_delete_node(tid: int, ntag: str) -> None:
         dpg.delete_item(ntag)
     t["nodes"].pop(ntag, None)
 
-
-# Public (push undo first)
 
 def spawn_node(block_label: str) -> None:
     """Spawn a node into the active tab, pushing an undo snapshot first."""

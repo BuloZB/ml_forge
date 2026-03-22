@@ -80,7 +80,7 @@ def _safe_int(v, default=0) -> int:
         return default
 
 
-# ── Shape simulation ──────────────────────────────────────
+# Shape simulation
 
 def _simulate_shapes(tab: dict) -> dict[str, tuple | None]:
     """

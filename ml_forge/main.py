@@ -1,9 +1,6 @@
 """
 main.py
-ML Forge entry point.
 
-Initialises DearPyGui, shows a loading splash, builds the full UI,
-creates the three pipeline tabs, and runs the render loop.
 """
 
 import time
