@@ -149,6 +149,8 @@ def main() -> None:
             delete_selected_nodes()
 
         if dpg.is_key_down(dpg.mvKey_LControl):
+            if dpg.is_key_pressed(dpg.mvKey_Back):
+                delete_selected_nodes()
             if dpg.is_key_pressed(dpg.mvKey_S):
                 from ml_forge.filesystem.save import save_current
                 save_current()
