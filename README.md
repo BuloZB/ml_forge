@@ -95,11 +95,11 @@ Configure epochs, device, checkpointing and early stopping in the right panel, t
 
 | Key | Action |
 |-----|--------|
-| `Del` | Delete selected nodes |
+| `Del` / `Ctrl-Backspace` | Delete selected nodes |
 | `Ctrl+S` | Save project |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
-| Middle-drag | Pan the canvas |
+| `Middle-drag` | Pan the canvas |
 
 ---
 
