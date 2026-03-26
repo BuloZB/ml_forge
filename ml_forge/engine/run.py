@@ -312,6 +312,7 @@ def _build_criterion_and_optimizer(model, device):
     import torch.nn as nn
     import torch.optim as optim
     from ml_forge.engine.generator import _LOSS_MAP, _OPTIM_MAP, _fill
+    from ui.console import log
 
     tab = get_tab_by_role("training")
     if tab is None:
@@ -339,7 +340,9 @@ def _build_criterion_and_optimizer(model, device):
             optimizer = eval(
                 f"optim.{module_name.replace('optim.', '')}(model.parameters(), {args_str})"
             )
-        except Exception:
+        except Exception as e:
+            log(f"Error occurred while instantiating optimizer: {e}", "error")
+            log(f"Defaulting to Adam optimizer with lr=1e-3", "warning")
             optimizer = optim.Adam(model.parameters(), lr=1e-3)
     else:
         optimizer = optim.Adam(model.parameters(), lr=1e-3)
