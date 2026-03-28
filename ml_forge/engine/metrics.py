@@ -5,11 +5,40 @@ Metrics window - shows a live summary of the most recent training run.
 Reads directly from state.train_state which is populated by runner.py
 during and after training. Can be opened at any time; updates on each
 open to reflect the latest data.
+
 """
 
 from __future__ import annotations
 import dearpygui.dearpygui as dpg
 import ml_forge.state as state
+
+
+def _get_plot_data() -> dict:
+    """
+    Return the best available plot data.
+    Priority: live in-progress keys > last_run snapshot > empty.
+    """
+    ts = state.train_state
+    live_epochs = ts.get("plot_epochs", [])
+    if live_epochs:
+        return {
+            "epochs": live_epochs,
+            "tl":     ts.get("plot_tl", []),
+            "vl":     ts.get("plot_vl", []),
+            "va":     ts.get("plot_va", []),
+            "bx":     ts.get("plot_batch_x", []),
+            "by":     ts.get("plot_batch_y", []),
+        }
+
+    last = ts.get("last_run", {})
+    return {
+        "epochs": last.get("plot_epochs", []),
+        "tl":     last.get("plot_tl", []),
+        "vl":     last.get("plot_vl", []),
+        "va":     last.get("plot_va", []),
+        "bx":     last.get("plot_batch_x", []),
+        "by":     last.get("plot_batch_y", []),
+    }
 
 
 def open_metrics_window() -> None:
@@ -28,12 +57,14 @@ def open_metrics_window() -> None:
 
         ts     = state.train_state
         status = ts.get("status", "idle")
-        epochs = ts.get("plot_epochs", [])
-        tl     = ts.get("plot_tl",     [])
-        vl     = ts.get("plot_vl",     [])
-        va     = ts.get("plot_va",     [])
-        bx     = ts.get("plot_batch_x", [])
-        by     = ts.get("plot_batch_y", [])
+        data   = _get_plot_data()
+
+        epochs = data["epochs"]
+        tl     = data["tl"]
+        vl     = data["vl"]
+        va     = data["va"]
+        bx     = data["bx"]
+        by     = data["by"]
 
         has_data = bool(epochs)
 

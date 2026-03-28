@@ -1,6 +1,7 @@
 """
 engine/training_setup.py
 Manages the auto-spawned ModelBlock and DataLoaderBlock nodes in the Training tab.
+
 """
 
 from __future__ import annotations
@@ -68,9 +69,81 @@ def _lock_node(ntag: str) -> None:
     dpg.bind_item_theme(ntag, th)
 
 
-def update_block_labels() -> None:
-    pass
+def update_block_labels(epoch: int = 0, total: int = 0,
+                         train_loss: float | None = None,
+                         val_loss: float | None = None,
+                         val_acc: float | None = None) -> None:
+    """
+    Update ModelBlock and DataLoaderBlock node titles with live training stats.
+    Called from drain_result_queue() on each epoch result.
+
+    DearPyGui nodes don't expose a title text item directly — we update the
+    node label via dpg.set_item_label(), which changes the title bar text.
+    """
+    tab = _get_training_tab()
+    if tab is None:
+        return
+    tid = _tid_of(tab)
+    if tid is None:
+        return
+
+    model_tag  = _ntag(tid, _MODEL_NID)
+    loader_tag = _ntag(tid, _DATALOADER_NID)
+
+    # Build label strings
+    if epoch > 0 and total > 0:
+        progress = f"[{epoch}/{total}]"
+    else:
+        progress = ""
+
+    if train_loss is not None:
+        loss_str = f"loss={train_loss:.3f}"
+        if val_loss is not None:
+            loss_str += f"  val={val_loss:.3f}"
+        if val_acc is not None:
+            loss_str += f"  acc={val_acc:.2%}"
+        model_label  = f"ModelBlock  {progress}  {loss_str}"
+        loader_label = f"DataLoaderBlock  {progress}"
+    else:
+        model_label  = f"ModelBlock  {progress}"
+        loader_label = f"DataLoaderBlock  {progress}"
+
+    if dpg.does_item_exist(model_tag):
+        try:
+            dpg.set_item_label(model_tag, model_label)
+        except Exception:
+            pass
+
+    if dpg.does_item_exist(loader_tag):
+        try:
+            dpg.set_item_label(loader_tag, loader_label)
+        except Exception:
+            pass
 
 
 def reset_block_labels() -> None:
-    pass
+    """
+    Restore ModelBlock and DataLoaderBlock node titles to their original labels.
+    Called when training stops or finishes.
+    """
+    tab = _get_training_tab()
+    if tab is None:
+        return
+    tid = _tid_of(tab)
+    if tid is None:
+        return
+
+    model_tag  = _ntag(tid, _MODEL_NID)
+    loader_tag = _ntag(tid, _DATALOADER_NID)
+
+    if dpg.does_item_exist(model_tag):
+        try:
+            dpg.set_item_label(model_tag, "ModelBlock")
+        except Exception:
+            pass
+
+    if dpg.does_item_exist(loader_tag):
+        try:
+            dpg.set_item_label(loader_tag, "DataLoaderBlock")
+        except Exception:
+            pass

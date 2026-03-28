@@ -2,17 +2,7 @@
 run.py
 Real PyTorch training execution in a background thread.
 
-The thread communicates with the UI via a queue:
-  _result_queue  - epoch results posted by the thread, drained each frame
-
-PyTorch is required. The caller (training.py) is responsible for checking
-that torch is installed before calling start_real_training().
-
-Public API:
-    start_training(cfg)   start the background thread
-    stop_training()       signal the thread to stop
-    pause_training()      toggle pause
-    drain_result_queue()       called each frame; updates UI with results
+PyTorch is required. 
 """
 
 from __future__ import annotations
@@ -74,14 +64,12 @@ def _build_torch_model(device):
         module_name, template = _LAYER_MAP[label]
         args_str = _fill(template, node)
 
-        # Check for unfilled required params
         if "..." in args_str:
             raise ValueError(
                 f"Node '{label}' has unfilled parameters. "
                 f"Fill all required fields before training."
             )
 
-        # Dynamically evaluate the module expression
         import torch.nn as nn  # noqa: F811
         try:
             module = eval(f"nn.{module_name.replace('nn.', '')}({args_str})")
@@ -94,6 +82,25 @@ def _build_torch_model(device):
 
 
 #  DataLoader builder
+
+def _parse_sigma(raw: str):
+    """
+    BUG FIX #3: Parse GaussianBlur sigma field.
+    Accepts a single float ("1.0") or a range string ("0.1, 2.0").
+    Returns a float or (min, max) tuple as transforms.GaussianBlur expects.
+    """
+    raw = raw.strip()
+    if "," in raw:
+        parts = [p.strip() for p in raw.split(",")]
+        try:
+            return (float(parts[0]), float(parts[1]))
+        except (ValueError, IndexError):
+            return 1.0
+    try:
+        return float(raw)
+    except ValueError:
+        return 1.0
+
 
 def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
     """
@@ -125,7 +132,6 @@ def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
         "FashionMNIST": datasets.FashionMNIST,
     }
 
-    # Detect mode
     train_loader_node = next(
         (n for n in nodes if n.block_label in ("DataLoader (train)", "DataLoader")), None)
     val_loader_node   = next(
@@ -133,7 +139,6 @@ def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
 
     dual_chain = val_loader_node is not None
 
-    # Helper: build transform list from a subchain
     def _build_transform(chain_nodes):
         tlist = []
         for n in chain_nodes:
@@ -173,9 +178,12 @@ def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
                     float(n.params.get("hue",       "0") or "0"),
                 ))
             elif label == "GaussianBlur":
+                # BUG FIX #3: use _parse_sigma instead of bare float()
                 ks = int(n.params.get("kernel_size","3") or "3")
-                if ks % 2 == 0: ks += 1
-                tlist.append(transforms.GaussianBlur(ks, sigma=float(n.params.get("sigma","1.0") or "1.0")))
+                if ks % 2 == 0:
+                    ks += 1
+                sigma = _parse_sigma(n.params.get("sigma","1.0") or "1.0")
+                tlist.append(transforms.GaussianBlur(ks, sigma=sigma))
             elif label == "RandomErasing":
                 tlist.append(transforms.RandomErasing(p=float(n.params.get("p","0.5") or "0.5")))
             elif label == "Grayscale":
@@ -184,7 +192,6 @@ def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
             tlist = [transforms.ToTensor()]
         return transforms.Compose(tlist)
 
-    # Helper: instantiate a dataset node
     def _make_dataset(ds_node, transform):
         label    = ds_node.block_label
         root     = ds_node.params.get("root","./data").strip() or "./data"
@@ -207,13 +214,9 @@ def _build_dataloaders(device, val_split: float, seed: int, shuffle: bool):
                 f"Supported datasets: MNIST, CIFAR10, CIFAR100, FashionMNIST, ImageFolder."
             )
 
-    # find the chain feeding into a loader node
     def _chain_for_loader(loader_node):
-        """Return ordered nodes that are ancestors of loader_node."""
         loader_ntag = loader_node.ntag
         ancestors   = set()
-        # Walk backwards via links - any node whose output connects to loader
-        # or to another ancestor is an ancestor
         changed = True
         targets = {loader_ntag}
         while changed:
@@ -312,6 +315,7 @@ def _build_criterion_and_optimizer(model, device):
     import torch.nn as nn
     import torch.optim as optim
     from ml_forge.engine.generator import _LOSS_MAP, _OPTIM_MAP, _fill
+    # BUG FIX #1: was `from ui.console import log` — missing package prefix
     from ml_forge.ui.console import log
 
     tab = get_tab_by_role("training")
@@ -383,11 +387,9 @@ def _training_thread(cfg: dict) -> None:
 
         _result_queue.put({"type": "log", "msg": f"Device: {device}", "level": "info"})
 
-        # Validate checkpoint dir early
         if ckpt_dir:
             try:
                 ckpt_dir.mkdir(parents=True, exist_ok=True)
-                # Verify write permission by touching a temp file
                 test_file = ckpt_dir / ".write_test"
                 test_file.touch()
                 test_file.unlink()
@@ -399,7 +401,6 @@ def _training_thread(cfg: dict) -> None:
             except Exception as e:
                 raise ValueError(f"Checkpoint directory error: {e}")
 
-        # Build
         model = _build_torch_model(device)
         _result_queue.put({"type": "log",
                            "msg": f"Model: {sum(p.numel() for p in model.parameters()):,} params",
@@ -417,10 +418,8 @@ def _training_thread(cfg: dict) -> None:
         es_counter    = 0
         start_time    = time.time()
 
-        # Epoch loop
         for epoch in range(1, epochs + 1):
 
-            # Pause check
             while _pause_event.is_set():
                 if _stop_event.is_set():
                     break
@@ -430,7 +429,6 @@ def _training_thread(cfg: dict) -> None:
                 _result_queue.put({"type": "stopped"})
                 return
 
-            # Train
             model.train()
             train_loss   = 0.0
             batch_losses = []
@@ -453,7 +451,6 @@ def _training_thread(cfg: dict) -> None:
                 train_loss += batch_loss
                 batch_losses.append(batch_loss)
 
-                # Post smoothed batch loss every 10 steps
                 if (batch_idx + 1) % 10 == 0:
                     smoothed = sum(batch_losses[-10:]) / len(batch_losses[-10:])
                     _result_queue.put({
@@ -466,7 +463,6 @@ def _training_thread(cfg: dict) -> None:
 
             train_loss /= max(len(train_loader), 1)
 
-            # Validate
             val_loss = val_acc = None
             if val_loader:
                 model.eval()
@@ -483,7 +479,6 @@ def _training_thread(cfg: dict) -> None:
                 val_loss = v_loss / max(len(val_loader), 1)
                 val_acc  = correct / total if total > 0 else 0.0
 
-            # Checkpoint
             current_metric = (
                 val_loss if ckpt_monitor == "val_loss" and val_loss is not None
                 else val_acc if ckpt_monitor == "val_acc" and val_acc is not None
@@ -503,7 +498,6 @@ def _training_thread(cfg: dict) -> None:
             if not ckpt_best and epoch % ckpt_every == 0:
                 torch.save(model.state_dict(), ckpt_dir / f"epoch_{epoch:04d}.pth")
 
-            # Post epoch result first, before any early-stop break
             _result_queue.put({
                 "type":       "epoch",
                 "epoch":      epoch,
@@ -513,7 +507,6 @@ def _training_thread(cfg: dict) -> None:
                 "val_acc":    val_acc,
             })
 
-            # Early stopping
             if es_enable and val_loss is not None:
                 improved = (
                     (best_metric - current_metric) > es_min_delta
@@ -596,15 +589,12 @@ def _handle_result(item: dict) -> None:
         log(item["msg"], item.get("level", "info"))
 
     elif t == "batch":
-        # Fine-grained progress within the current epoch
         epoch        = item["epoch"]
         batch        = item["batch"]
         total_b      = item["total_batches"]
         batch_loss   = item["batch_loss"]
         total_epochs = state.train_state.get("total_epochs", 1)
 
-        # Only update progress if we have a valid total_epochs already set
-        # (avoids jitter before the first epoch result arrives)
         if total_epochs > 1 or state.train_state.get("epoch", 0) > 0:
             coarse = (epoch - 1) / total_epochs
             fine   = (batch / total_b) / total_epochs
@@ -617,7 +607,6 @@ def _handle_result(item: dict) -> None:
                                        f"batch {batch}/{total_b}  "
                                        f"loss={batch_loss:.4f}")
 
-        # Append to batch loss series
         ts = state.train_state
         if "plot_batch_x" not in ts:
             ts["plot_batch_x"] = []
@@ -627,13 +616,11 @@ def _handle_result(item: dict) -> None:
         ts["plot_batch_y"].append(batch_loss)
 
         if dpg.does_item_exist("series_batch_loss"):
-            # Apply smoothing window from the slider
             window = 10
             if dpg.does_item_exist("cfg_batch_smooth"):
                 window = max(1, int(dpg.get_value("cfg_batch_smooth")))
             raw_y = ts["plot_batch_y"]
             if window > 1 and len(raw_y) >= window:
-                # Exponential moving average for a smooth line
                 alpha = 2.0 / (window + 1)
                 smoothed = [raw_y[0]]
                 for v in raw_y[1:]:
@@ -652,17 +639,14 @@ def _handle_result(item: dict) -> None:
         vl    = item.get("val_loss")
         va    = item.get("val_acc")
 
-        # Guard against duplicate epoch results (can occur if queue drains mid-epoch)
         last_logged = state.train_state.get("_last_logged_epoch", 0)
         if e <= last_logged:
             return
         state.train_state["_last_logged_epoch"] = e
 
-        # Set total_epochs first so batch handler has it before next epoch starts
         state.train_state["total_epochs"] = total
         state.train_state["epoch"]        = e
 
-        # Clean epoch-level progress
         dpg.set_value("train_progress", e / total)
         if dpg.does_item_exist("train_progress"):
             dpg.configure_item("train_progress",
@@ -674,7 +658,6 @@ def _handle_result(item: dict) -> None:
         else:
             log(f"Epoch {e:>3}/{total}  loss={tl:.4f}", "info")
 
-        # Update plots
         ts = state.train_state
         if "plot_epochs" not in ts:
             ts["plot_epochs"] = []
@@ -698,13 +681,30 @@ def _handle_result(item: dict) -> None:
             dpg.fit_axis_data("loss_y")
             dpg.fit_axis_data("acc_y")
 
+        # Update Training tab node labels with live stats (was stub, now implemented)
+        try:
+            from ml_forge.engine.training_setup import update_block_labels
+            update_block_labels(epoch=e, total=total,
+                                train_loss=tl, val_loss=vl, val_acc=va)
+        except Exception:
+            pass
+
     elif t in ("done", "stopped"):
         state.train_state["status"] = "idle"
         state.train_state["epoch"]  = 0
-        if "plot_epochs" in state.train_state:
-            for key in ("plot_epochs", "plot_tl", "plot_vl", "plot_ta", "plot_va",
-                        "plot_batch_x", "plot_batch_y"):
-                state.train_state.pop(key, None)
+
+        # BUG FIX #2: preserve plot data in "last_run" so the Metrics window
+        # can read it after training completes, instead of deleting it.
+        plot_keys = ("plot_epochs", "plot_tl", "plot_vl", "plot_ta", "plot_va",
+                     "plot_batch_x", "plot_batch_y")
+        last_run = {k: state.train_state.get(k, []) for k in plot_keys}
+        if any(last_run.values()):
+            state.train_state["last_run"] = last_run
+
+        # Clear the live keys so the next run starts fresh
+        for key in plot_keys:
+            state.train_state.pop(key, None)
+
         if dpg.does_item_exist("series_batch_loss"):
             dpg.set_value("series_batch_loss", [[], []])
         dpg.set_value("train_progress", 1.0 if t == "done" else 0.0)
