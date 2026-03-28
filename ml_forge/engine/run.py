@@ -312,7 +312,7 @@ def _build_criterion_and_optimizer(model, device):
     import torch.nn as nn
     import torch.optim as optim
     from ml_forge.engine.generator import _LOSS_MAP, _OPTIM_MAP, _fill
-    from ui.console import log
+    from ml_forge.ui.console import log
 
     tab = get_tab_by_role("training")
     if tab is None:
