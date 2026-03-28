@@ -1,9 +1,6 @@
 """
 blocks.py
 Block (node type) definitions and lookup helpers.
-
-Each block_def has an optional "defaults" dict mapping param name -> default value.
-These are pre-filled when a node is spawned.
 """
 
 from typing import Optional
