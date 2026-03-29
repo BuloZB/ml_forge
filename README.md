@@ -1,4 +1,7 @@
-# ML Forge
+# ML Forge 
+
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/zaina-ml-forge?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/zaina-ml-forge)
+
 
 A visual PyTorch pipeline editor. Build, train and run image classification models without writing code.
 ![ML Forge screenshot](ml_forge/assets/showcase.gif)
