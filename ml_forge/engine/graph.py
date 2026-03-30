@@ -1,28 +1,6 @@
 """
 graph.py
 Graph traversal and validation for all three pipeline tabs.
-
-Data structures:
-
-GraphNode  - a fully resolved node: its tag, block label, block def, param
-             values read live from DearPyGui, and which pins are connected.
-
-ValidationResult - list of Issue objects returned by validate_pipeline().
-             Severity is "error" (blocks training) or "warning" (advisory).
-
-Public API
-
-  build_graph(tab)          → dict[ntag -> GraphNode]
-  topological_sort(tab)     → list[GraphNode]   (raises CycleError if cyclic)
-  validate_pipeline()       → ValidationResult
-  get_tab_by_role(role)     → tab dict | None
-
-Role expectations
-
-  data_prep  : must have at least one DataLoader node
-  model      : must have exactly one Input and one Output node,
-               all layer nodes must be reachable from Input
-  training   : must have exactly one Loss and one Optimizer node
 """
 
 from __future__ import annotations
@@ -32,7 +10,41 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import ml_forge.state as state
-from ml_forge.engine.blocks import get_block_def
+from ml_forge.engine.blocks import get_block_def, SECTIONS
+
+
+# ---------------------------------------------------------------------------
+# BUG FIX #4: derive block-category sets from SECTIONS instead of hard-coding
+# ---------------------------------------------------------------------------
+
+def _labels_from_sections(*section_category_pairs: tuple[str, str]) -> frozenset[str]:
+    """Return a frozenset of block labels for the given (section, category) pairs."""
+    out: set[str] = set()
+    for section, category in section_category_pairs:
+        for block in SECTIONS.get(section, {}).get(category, []):
+            out.add(block["label"])
+    return frozenset(out)
+
+
+_DATASET_BLOCKS: frozenset[str] = _labels_from_sections(
+    ("Data Prep", "Datasets"),
+)
+
+_AUG_BLOCKS: frozenset[str] = _labels_from_sections(
+    ("Data Prep", "Augmentation"),
+)
+
+_DATALOADER_BLOCKS: frozenset[str] = _labels_from_sections(
+    ("Data Prep", "DataLoader"),
+)
+
+_LOSS_BLOCKS: frozenset[str] = _labels_from_sections(
+    ("Training", "Loss Functions"),
+)
+
+_OPTIMIZER_BLOCKS: frozenset[str] = _labels_from_sections(
+    ("Training", "Optimizers"),
+)
 
 
 #  Data structures
@@ -111,11 +123,9 @@ def _pin_owner(attr_tag: str) -> tuple[str, str] | None:
     Given an attribute tag like node_{tid}_{nid}_in_{pin}
     return (node_tag, pin_name) or None if unparseable.
     """
-    # format: node_<tid>_<nid>_in_<pin>  or  node_<tid>_<nid>_out_<pin>
     parts = attr_tag.split("_")
     if len(parts) < 5:
         return None
-    # node_{tid}_{nid}_{direction}_{pin...}
     ntag = f"node_{parts[1]}_{parts[2]}"
     pin  = "_".join(parts[4:])
     return ntag, pin
@@ -128,16 +138,14 @@ def build_graph(tab: dict) -> dict[str, GraphNode]:
     Build a dict of GraphNode objects from a tab's live node/link state.
     Reads current param field values and computes which pins are connected.
     """
-    # First pass: which pins have connections?
-    connected_in:  dict[str, set[str]] = {}   # ntag -> set of connected input pin names
-    connected_out: dict[str, set[str]] = {}   # ntag -> set of connected output pin names
+    connected_in:  dict[str, set[str]] = {}
+    connected_out: dict[str, set[str]] = {}
 
     for ntag in tab["nodes"]:
         connected_in[ntag]  = set()
         connected_out[ntag] = set()
 
     for a1, a2 in tab["links"].values():
-        # DearPyGui may store endpoints as integer item IDs - resolve to aliases
         if isinstance(a1, int):
             a1 = dpg.get_item_alias(a1) or ""
         if isinstance(a2, int):
@@ -149,8 +157,6 @@ def build_graph(tab: dict) -> dict[str, GraphNode]:
         if dst:
             connected_in[dst[0]].add(dst[1])
 
-    # Second pass: build GraphNode objects
-    # node_info may be a plain string (legacy) or {"label": ..., "theme": ...}
     def _label(node_info) -> str:
         return node_info["label"] if isinstance(node_info, dict) else str(node_info)
 
@@ -171,25 +177,20 @@ def build_graph(tab: dict) -> dict[str, GraphNode]:
     return graph
 
 
-# topoligical sort - kahn's
+# topological sort - kahn's
 
 def topological_sort(tab: dict) -> list[GraphNode]:
     """
     Return nodes in execution order (sources first).
     Raises CycleError if the graph contains a cycle.
-    Only includes nodes that are part of the connected graph.
-    Isolated nodes (no connections at all) are appended at the end.
     """
     graph = build_graph(tab)
     if not graph:
         return []
 
-    # Build adjacency: ntag -> list[ntag] (successors)
-    # and in-degree count
     successors:  dict[str, list[str]] = {n: [] for n in graph}
     in_degree:   dict[str, int]       = {n: 0  for n in graph}
 
-    # Map from attr_tag -> ntag for quick lookup
     attr_to_node: dict[str, str] = {}
     for ntag in graph:
         parts = ntag.split("_")
@@ -213,7 +214,6 @@ def topological_sort(tab: dict) -> list[GraphNode]:
             successors[src_node].append(dst_node)
             in_degree[dst_node] += 1
 
-    # Kahn's algorithm
     queue  = [n for n, d in in_degree.items() if d == 0]
     sorted_nodes: list[GraphNode] = []
 
@@ -232,8 +232,6 @@ def topological_sort(tab: dict) -> list[GraphNode]:
 
 #  Validators per tab role
 
-# Nodes that count as "required params" - any param that is not optional
-# For now: any param field that exists should be filled (empty = warning)
 _OPTIONAL_PARAMS: set[str] = {"padding", "bias", "eps", "momentum",
                                "weight_decay", "betas", "ignore_index", "weight"}
 
@@ -257,13 +255,6 @@ def _validate_params(graph: dict[str, GraphNode], result: ValidationResult) -> N
             )
 
 
-_DATALOADER_BLOCKS = {"DataLoader (train)", "DataLoader (val)", "DataLoader"}
-_DATASET_BLOCKS    = {"MNIST","CIFAR10","CIFAR100","FashionMNIST","ImageFolder"}
-_AUG_BLOCKS        = {"Resize","CenterCrop","RandomCrop","RandomHFlip","RandomVFlip",
-                      "ColorJitter","RandomRotation","GaussianBlur","RandomErasing",
-                      "Normalize","ToTensor","Grayscale"}
-
-
 def _validate_data_prep(tab: dict, result: ValidationResult) -> None:
     graph = build_graph(tab)
     if not graph:
@@ -272,13 +263,11 @@ def _validate_data_prep(tab: dict, result: ValidationResult) -> None:
 
     nodes = list(graph.values())
 
-    # Must have exactly one dataset source per chain
     dataset_nodes = [n for n in nodes if n.block_label in _DATASET_BLOCKS]
     if len(dataset_nodes) == 0:
         result.add_error("Data Prep tab needs a Dataset node (e.g. CIFAR10, ImageFolder).")
         return
 
-    # Must have at least a train DataLoader
     train_loaders = [n for n in nodes if n.block_label in ("DataLoader (train)", "DataLoader")]
     val_loaders   = [n for n in nodes if n.block_label == "DataLoader (val)"]
     all_loaders   = [n for n in nodes if n.block_label in _DATALOADER_BLOCKS]
@@ -287,7 +276,6 @@ def _validate_data_prep(tab: dict, result: ValidationResult) -> None:
         result.add_error("Data Prep tab needs at least a DataLoader (train) node.")
         return
 
-    # Check each dataset output is connected
     for ds in dataset_nodes:
         if "img" not in ds.connected_outputs:
             result.add_warning(
@@ -295,7 +283,6 @@ def _validate_data_prep(tab: dict, result: ValidationResult) -> None:
                 ds.ntag,
             )
 
-    # Check all dataloaders have connected inputs
     for loader in all_loaders:
         if "img" not in loader.connected_inputs:
             result.add_warning(
@@ -303,7 +290,6 @@ def _validate_data_prep(tab: dict, result: ValidationResult) -> None:
                 loader.ntag,
             )
 
-    # Check augmentation nodes are not orphaned
     for node in nodes:
         if node.block_label not in _AUG_BLOCKS:
             continue
@@ -313,7 +299,6 @@ def _validate_data_prep(tab: dict, result: ValidationResult) -> None:
                 node.ntag,
             )
 
-    # Cycle check
     try:
         topological_sort(tab)
     except CycleError:
@@ -341,7 +326,6 @@ def _validate_model(tab: dict, result: ValidationResult) -> None:
     elif len(outputs) > 1:
         result.add_error(f"Model tab has {len(outputs)} Output nodes - only one allowed.")
 
-    # Check for orphaned nodes (no connections at all)
     for node in graph.values():
         if node.block_label in ("Input", "Output"):
             continue
@@ -351,7 +335,6 @@ def _validate_model(tab: dict, result: ValidationResult) -> None:
                 node.ntag,
             )
 
-    # Check for disconnected inputs on non-source nodes
     for node in graph.values():
         if node.block_label == "Input":
             continue
@@ -362,18 +345,12 @@ def _validate_model(tab: dict, result: ValidationResult) -> None:
                 node.ntag,
             )
 
-    # Cycle check
     try:
         topological_sort(tab)
     except CycleError:
         result.add_error("Model graph contains a cycle.")
 
     _validate_params(graph, result)
-
-
-_LOSS_BLOCKS      = {"CrossEntropyLoss","MSELoss","BCELoss","BCEWithLogits",
-                     "NLLLoss","HuberLoss","KLDivLoss"}
-_OPTIMIZER_BLOCKS = {"Adam","AdamW","SGD","RMSprop","Adagrad","LBFGS"}
 
 
 def _validate_training(tab: dict, result: ValidationResult) -> None:

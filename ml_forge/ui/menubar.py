@@ -18,7 +18,7 @@ def build_menubar() -> None:
 
     with dpg.viewport_menu_bar():
         dpg.add_text("ML Forge", color=(100, 200, 255))
-        dpg.add_text("v1.0",     color=(120, 120, 140))
+        dpg.add_text("v1.0.3",     color=(120, 120, 140))
         dpg.add_separator()
 
         # File
