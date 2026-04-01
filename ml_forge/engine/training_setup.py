@@ -73,13 +73,6 @@ def update_block_labels(epoch: int = 0, total: int = 0,
                          train_loss: float | None = None,
                          val_loss: float | None = None,
                          val_acc: float | None = None) -> None:
-    """
-    Update ModelBlock and DataLoaderBlock node titles with live training stats.
-    Called from drain_result_queue() on each epoch result.
-
-    DearPyGui nodes don't expose a title text item directly — we update the
-    node label via dpg.set_item_label(), which changes the title bar text.
-    """
     tab = _get_training_tab()
     if tab is None:
         return
