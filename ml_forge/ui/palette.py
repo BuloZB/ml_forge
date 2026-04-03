@@ -1,6 +1,7 @@
 """
 ui/palette.py
 Block palette panel: search filtering and button rebuild.
+
 """
 
 import dearpygui.dearpygui as dpg
@@ -49,9 +50,30 @@ def rebuild_palette() -> None:
                     btn_tag = f"palette_btn_{block['label']}"
                     if dpg.does_item_exist(btn_tag):
                         dpg.delete_item(btn_tag)
-                    dpg.add_button(label=block["label"], tag=btn_tag, width=150, indent=18,
-                                   callback=lambda s, a, u: spawn_node(u),
-                                   user_data=block["label"], parent=header_tag)
+
+                    dpg.add_button(
+                        label=block["label"],
+                        tag=btn_tag,
+                        width=150,
+                        indent=18,
+                        callback=lambda s, a, u: spawn_node(u),
+                        user_data=block["label"],
+                        parent=header_tag,
+                    )
+
+                    tip      = block.get("tooltip", "")
+                    hint     = block.get("when_to_use", "")
+                    if tip or hint:
+                        with dpg.tooltip(btn_tag):
+                            if tip:
+                                dpg.add_text(tip, color=(220, 220, 220))
+                            if hint:
+                                dpg.add_spacer(height=3)
+                                dpg.add_text(
+                                    f"When to use:  {hint}",
+                                    color=(160, 200, 160),
+                                )
+
                     with dpg.theme() as btn_theme:
                         with dpg.theme_component(dpg.mvButton):
                             dpg.add_theme_color(dpg.mvThemeCol_Text, block["color"])

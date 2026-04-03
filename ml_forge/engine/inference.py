@@ -367,7 +367,6 @@ def _sample_and_run() -> None:
     _run_on_current_sample()
 
 
-# ── UI helpers ────────────────────────────────────────────
 
 def _clear_results() -> None:
     if dpg.does_item_exist("inf_results"):

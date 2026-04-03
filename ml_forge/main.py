@@ -24,29 +24,42 @@ from ml_forge.ui.resize  import resize_callback
 #  Splash helpers
 
 def _build_splash(vw: int, vh: int) -> None:
-    sw, sh = 340, 160
+    import pathlib
+    sw, sh = 340, 210
     sx = (vw - sw) // 2
     sy = (vh - sh) // 2
+    logo_w = 56
+    logo_h = 56
+    logo_tag = "splash_logo_tex"
+
+    logo_path = pathlib.Path(__file__).parent / "assets" / "icon.png"
+    if logo_path.exists() and not dpg.does_item_exist(logo_tag):
+        width, height, _, data = dpg.load_image(str(logo_path))
+        with dpg.texture_registry():
+            dpg.add_static_texture(width, height, data, tag=logo_tag)
 
     with dpg.window(tag="splash", no_title_bar=True, no_move=True,
                     no_resize=True, no_scrollbar=True, no_collapse=True,
                     modal=False, pos=(sx, sy), width=sw, height=sh):
 
-        dpg.add_spacer(height=18)
-        dpg.add_text("ML Forge", tag="splash_title",
-                     color=(100, 200, 255))
+        dpg.add_spacer(height=16)
 
-        # Centre the title text manually after first render
-        dpg.add_spacer(height=4)
-        dpg.add_text("Initialising...", tag="splash_status",
-                     color=(160, 160, 160))
+        # Centered logo using indent calculated from window width
+        if dpg.does_item_exist(logo_tag):
+            indent = (sw - logo_w) // 2
+            dpg.add_image(logo_tag, width=logo_w, height=logo_h, indent=indent)
+
         dpg.add_spacer(height=10)
-        dpg.add_progress_bar(tag="splash_progress",
-                             default_value=0.0,
-                             width=sw - 40,
-                             overlay="")
+        dpg.add_text("ML Forge", tag="splash_title", color=(100, 200, 255),
+                     indent=(sw // 2) - 30)   # approx centre for the title text
+        dpg.add_spacer(height=4)
+        dpg.add_text("Initialising...", tag="splash_status", color=(160, 160, 160),
+                     indent=16)
+        dpg.add_spacer(height=10)
+        dpg.add_progress_bar(tag="splash_progress", default_value=0.0,
+                             width=sw - 40, overlay="", indent=16)
         dpg.add_spacer(height=8)
-        dpg.add_text("", tag="splash_step", color=(120, 120, 120))
+        dpg.add_text("", tag="splash_step", color=(120, 120, 120), indent=16)
 
 
 def _splash_step(label: str, progress: float) -> None:
@@ -78,6 +91,7 @@ def main() -> None:
     dpg.create_context()
     dpg.create_viewport(title="ML Forge", width=1380, height=820,
                         resizable=True)
+
     dpg.setup_dearpygui()
     dpg.show_viewport()
 

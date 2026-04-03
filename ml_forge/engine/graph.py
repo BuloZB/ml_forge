@@ -13,10 +13,6 @@ import ml_forge.state as state
 from ml_forge.engine.blocks import get_block_def, SECTIONS
 
 
-# ---------------------------------------------------------------------------
-# BUG FIX #4: derive block-category sets from SECTIONS instead of hard-coding
-# ---------------------------------------------------------------------------
-
 def _labels_from_sections(*section_category_pairs: tuple[str, str]) -> frozenset[str]:
     """Return a frozenset of block labels for the given (section, category) pairs."""
     out: set[str] = set()
