@@ -150,27 +150,15 @@ def main() -> None:
 
     prev_time       = time.time()
     _autofill_counter = 0
+    
+    from ml_forge.shortcuts import shortcuts
 
     while dpg.is_dearpygui_running():
         now       = time.time()
         dt        = now - prev_time
         prev_time = now
         
-        if dpg.is_key_pressed(dpg.mvKey_Delete):
-            delete_selected_nodes()
-
-        if dpg.is_key_down(dpg.mvKey_LControl):
-            if dpg.is_key_pressed(dpg.mvKey_Back):
-                delete_selected_nodes()
-            if dpg.is_key_pressed(dpg.mvKey_S):
-                from ml_forge.filesystem.save import save_current
-                save_current()
-            if dpg.is_key_pressed(dpg.mvKey_Z):
-                from ml_forge.graph.undo import undo
-                undo()
-            if dpg.is_key_pressed(dpg.mvKey_Y):
-                from ml_forge.graph.undo import redo
-                redo()
+        shortcuts()
 
         sync_active_tab()
         refresh_pipeline_bar()
