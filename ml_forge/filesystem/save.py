@@ -90,7 +90,8 @@ def _restore_tab(tab_data: dict) -> None:
     role = tab_data.get("role")
 
     tid = new_tab(name, role=role)
-    dpg.render_dearpygui_frame()
+    dpg.split_frame(delay=32)
+    # dpg.render_dearpygui_frame()
     resize_callback()
 
     t = state.tabs[tid]
@@ -105,6 +106,7 @@ def _restore_tab(tab_data: dict) -> None:
     # Remove hint node now that real nodes are being loaded
     from ml_forge.graph.tabs import _remove_hint_node
     _remove_hint_node(tid)
+    dpg.split_frame(delay=32)
 
     for link_data in tab_data.get("links", []):
         link_id  = link_data["link_id"]
@@ -145,6 +147,7 @@ def load_project(path: str) -> None:
         log(f"Warning: file version {version} may not be fully compatible.", "warning")
 
     _clear_all_tabs()
+    dpg.split_frame(delay=32)
 
     tabs_data = payload.get("tabs", [])
     if not tabs_data:
@@ -153,6 +156,7 @@ def load_project(path: str) -> None:
 
     for tab_data in tabs_data:
         _restore_tab(tab_data)
+        dpg.split_frame(delay=32)
 
     if state.tabs:
         first_tid = list(state.tabs.keys())[0]
