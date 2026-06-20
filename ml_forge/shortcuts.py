@@ -4,6 +4,7 @@ Keyboard shortcuts and related helper functions.
 """
 
 import dearpygui.dearpygui as dpg
+from ml_forge.graph.nodes import delete_selected_nodes
 
 def shortcuts() -> None:
     if dpg.is_key_pressed(dpg.mvKey_Delete):
